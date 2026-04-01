@@ -133,6 +133,12 @@ export default function RoleSelector() {
           >
             <span>Teacher</span>
           </button>
+          <button
+            className={`option-btn ${selected === "class" ? "active" : ""}`}
+            onClick={() => setSelected("class")}
+          >
+            <span>Class</span>
+          </button>
         </div>
 
         <p className={`status ${selected ? "active" : ""}`}>
