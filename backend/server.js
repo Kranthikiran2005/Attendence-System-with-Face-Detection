@@ -1,17 +1,19 @@
 const express = require('express');
 const app = express();
-const PORT = 3000;
 
-// Middleware to parse JSON bodies
+const db = require('./db');
+
 app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
 
-// Basic route
-app.get('/', (req, res) => {
-  res.send('Hello World!');
+app.get('/', async (req, res) => {
+  try {
+    const [rows] = await db.query('SELECT * FROM xyz');
+    res.json(rows);
+  } catch (err) {
+    res.status(500).send(err.message);
+  }
 });
 
-// Start the server
-app.listen(PORT, () => {
-  console.log(`Server is running on http://localhost:${PORT}`);
+app.listen(3000, () => {
+  console.log('Server running on http://localhost:3000');
 });
