@@ -135,7 +135,10 @@ export default function RoleSelector() {
 
           <button
             className={`option-btn ${selected === "teacher" ? "active" : ""}`}
-            onClick={() => setSelected("teacher")}
+            onClick={() =>{ 
+              setSelected("teacher");
+              navigate("/teacher");
+            }}
           >
             <span>Teacher</span>
           </button>
