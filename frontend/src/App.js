@@ -1,13 +1,18 @@
-import logo from './logo.svg';
+
 import './App.css';
+import { Routes, Route } from "react-router-dom";
+
 import Roleselector from './pages/Homepage'
+import StudentPage from './pages/StudentPage';
 import Login from './pages/Login'
 function App() {
   return (
-    <div className="App">
-     <Roleselector/>
-     
-    </div>
+
+    <Routes>
+
+      <Route path="/" element={<Roleselector/>}/>
+      <Route path="/student" element={<StudentPage/>}/>
+    </Routes>
   );
 }
 

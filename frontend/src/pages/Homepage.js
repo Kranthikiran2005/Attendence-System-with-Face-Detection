@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 const styles = `
   @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=DM+Sans:wght@400;500&display=swap');
@@ -108,9 +109,11 @@ const styles = `
   }
 `;
 
+
+
 export default function RoleSelector() {
   const [selected, setSelected] = useState(null);
-
+  const navigate = useNavigate();
   return (
     <>
       <style>{styles}</style>
@@ -120,7 +123,10 @@ export default function RoleSelector() {
         <div className="options">
           <button
             className={`option-btn ${selected === "student" ? "active" : ""}`}
-            onClick={() => setSelected("student")}
+            onClick={() => {
+            setSelected("student");
+            navigate("/student");
+          }}
           >
             <span>Student</span>
           </button>
