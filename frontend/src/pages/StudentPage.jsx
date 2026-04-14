@@ -1,4 +1,8 @@
 import { useState } from "react";
+//import SubjectAttendancePage from "./SubjectAttendancePage";
+import { useNavigate } from "react-router-dom";
+
+
 
 const SUBJECTS = [
   { id: 1, name: "Mathematics", icon: "∑", color: "#e8f4fd", accent: "#2980b9", desc: "Algebra, Calculus & Geometry" },
@@ -35,7 +39,7 @@ const styles = `
  */
 export default function StudentPage({ onSubject, onTakePhoto }) {
   const [hovered, setHovered] = useState(null);
-
+  const navigate = useNavigate();
   return (
     <>
       <style>{styles}</style>
@@ -86,7 +90,9 @@ export default function StudentPage({ onSubject, onTakePhoto }) {
           {SUBJECTS.map((subj, i) => (
             <button
               key={subj.id}
-              onClick={() => onSubject(subj)}
+              onClick={() => {
+                //navigate("/student/attendance",{state: {subject:subj}});
+              }}
               onMouseEnter={() => setHovered(subj.id)}
               onMouseLeave={() => setHovered(null)}
               style={{
