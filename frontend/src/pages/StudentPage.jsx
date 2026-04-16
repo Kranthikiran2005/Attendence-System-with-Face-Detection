@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useState,useEffect } from "react";
 //import SubjectAttendancePage from "./SubjectAttendancePage";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 
 
 
@@ -39,7 +39,23 @@ const styles = `
  */
 export default function StudentPage({ onSubject, onTakePhoto }) {
   const [hovered, setHovered] = useState(null);
+  const [student_id, setStudent_id] =useState(null);
+  const [student_name,setStudent_name]=useState(null);
   const navigate = useNavigate();
+  const location=useLocation();
+const [isLoggedIn, setIsLoggedIn] = useState(false);
+
+  const getLoginStatus = () => {
+  return location.state?.logged || false;
+};
+useEffect(() => {
+  if (location.state?.logged) {
+    setIsLoggedIn(true);
+  }
+  setStudent_id(location.state?.id);
+  setStudent_name(location.state?.name);
+}, [location.state]);
+  
   return (
     <>
       <style>{styles}</style>
@@ -60,26 +76,62 @@ export default function StudentPage({ onSubject, onTakePhoto }) {
             </p>
           </div>
 
-          <button
-            onClick={onTakePhoto}
-            onMouseEnter={() => setHovered("photo")}
-            onMouseLeave={() => setHovered(null)}
-            style={{
-              display: "flex", alignItems: "center", gap: 8,
-              padding: "10px 22px",
-              background: hovered === "photo" ? "#1a1a1a" : "transparent",
-              border: "1.5px solid #1a1a1a",
-              color: hovered === "photo" ? "#fffbf4" : "#1a1a1a",
-              fontFamily: "'DM Sans', sans-serif",
-              fontSize: 12, fontWeight: 500, letterSpacing: "0.12em",
-              textTransform: "uppercase", cursor: "pointer",
-              transition: "all 0.22s ease",
-              borderRadius: 2,
-            }}
-          >
-            <span style={{ fontSize: 15 }}>📷</span> Take Photos
-          </button>
-        </div>
+          <div style={{ display: "flex", gap: 12 }}>
+  {!isLoggedIn ? (
+    <>
+      <button
+        onClick={() => navigate("/register", { state: { role: "Student" } })}
+        style={{
+      padding: "10px 20px",
+      background: "#1a1a1a",
+      color: "#fffbf4",
+      border: "none",
+      fontSize: 12,
+      letterSpacing: "0.12em",
+      textTransform: "uppercase",
+      cursor: "pointer",
+      borderRadius: 2,
+      }}
+      >
+        Register
+      </button>
+
+      <button
+        onClick={() => navigate("/login",{state:{role: "student"}})}
+        style={{
+      padding: "10px 20px",
+      background: "#1a1a1a",
+      color: "#fffbf4",
+      border: "none",
+      fontSize: 12,
+      letterSpacing: "0.12em",
+      textTransform: "uppercase",
+      cursor: "pointer",
+      borderRadius: 2,
+    }}
+      >
+        Login
+      </button>
+    </>
+  ) : (
+    <>
+      <span>Welcome, {student_name?.user_id}</span>
+
+      <button onClick={onTakePhoto}>
+        📷 Take Photos
+      </button>
+
+      <button onClick={() => {
+        setIsLoggedIn(false);
+        setStudent_id(null);
+        setStudent_name(null);
+      }}>
+        Logout
+      </button>
+    </>
+  )}
+</div>
+</div>
 
         {/* Subject grid */}
         <div style={{

@@ -1,73 +1,95 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useLocation } from 'react-router-dom';
 
 function Login() {
-   
-  const [showLogin, setShowLogin] = useState(true);
+
   const [loggedInUser, setLoggedInUser] = useState(null);
-  
+
   // Login form
-  const [loginEmail, setLoginEmail] = useState('');
+  const [loginId, setLoginId] = useState('');
   const [loginPassword, setLoginPassword] = useState('');
   const [loginMsg, setLoginMsg] = useState('');
-  
-  // Register form
-  const [regName, setRegName] = useState('');
-  const [regEmail, setRegEmail] = useState('');
-  const [regPassword, setRegPassword] = useState('');
-  const [regMsg, setRegMsg] = useState('');
-  
-  // Load users from localStorage
-  const [users, setUsers] = useState(() => {
+
+
+  // Load users from localStorage (optional, kept as is)
+  const [users] = useState(() => {
     const saved = localStorage.getItem('users');
     return saved ? JSON.parse(saved) : [];
   });
-
-  const saveUsers = (newUsers) => {
-    setUsers(newUsers);
-    localStorage.setItem('users', JSON.stringify(newUsers));
-  };
-
-  const handleLogin = (e) => {
-    e.preventDefault();
-    const user = users.find(u => u.email === loginEmail && u.password === loginPassword);
-    
-    if (user) {
-      setLoggedInUser(user);
-      setLoginMsg('');
-    } else {
-      setLoginMsg('Invalid email or password');
-    }
-  };
-
-  const handleRegister = (e) => {
+  const navigate=useNavigate();
+  const location=useLocation();
+  const handleLogin = async (e) => {
     e.preventDefault();
     
-    if (!regName || !regEmail || !regPassword) {
-      setRegMsg('Please fill all fields');
-      return;
+    const role = location.state?.role;
+    if (role ==="student"){
+      try {
+      const res = await fetch("http://localhost:3000/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          loginId: loginId,
+          loginPassword: loginPassword,
+          role: "student"
+        })
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        setLoginMsg(data.message);
+        return;
+      }
+
+      // success
+      setLoggedInUser(data.user);
+      
+      setLoginMsg("");
+      navigate("/student", {
+    state: { id: res.id,user: res.user_name, token:res.token, logged:true }
+    });
+    } catch (err) {
+      setLoginMsg("Server error");
+      console.error(err);
+    }
+    }
+    else if(role === "teacher"){
+      try {
+      const res = await fetch("http://localhost:3000/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          loginId: loginId,
+          loginPassword: loginPassword,
+          role: "teacher"
+        })
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        setLoginMsg(data.message);
+        return;
+      }
+
+      // success
+      setLoggedInUser(data.user);
+      
+      setLoginMsg("");
+      navigate("/teacher", {
+    state: { user: res.user_name, token:res.token }
+    });
+    } catch (err) {
+      setLoginMsg("Server error");
+      console.error(err);
+    }
     }
     
-    if (users.find(u => u.email === regEmail)) {
-      setRegMsg('Email already exists');
-      return;
-    }
-    
-    const newUser = {
-      name: regName,
-      email: regEmail,
-      password: regPassword
-    };
-    
-    saveUsers([...users, newUser]);
-    setRegMsg('Registration successful! Please login');
-    setRegName('');
-    setRegEmail('');
-    setRegPassword('');
-    
-    setTimeout(() => {
-      setShowLogin(true);
-      setRegMsg('');
-    }, 1500);
   };
 
   const handleLogout = () => {
@@ -80,8 +102,10 @@ function Login() {
       <div style={styles.container}>
         <div style={styles.card}>
           <h2>Welcome {loggedInUser.name}! 🎓</h2>
-          <p>Email: {loggedInUser.email}</p>
-          <button onClick={handleLogout} style={styles.logoutBtn}>Logout</button>
+          <p>Login ID: {loggedInUser.loginId}</p>
+          <button onClick={handleLogout} style={styles.logoutBtn}>
+            Logout
+          </button>
         </div>
       </div>
     );
@@ -90,96 +114,37 @@ function Login() {
   return (
     <div style={styles.container}>
       <div style={styles.card}>
-        <div style={styles.tabs}>
-          <button 
-            style={{...styles.tabBtn, ...(showLogin ? styles.activeTab : {})}}
-            onClick={() => {
-              setShowLogin(true);
-              setLoginMsg('');
-              setRegMsg('');
-            }}
-          >
+        <form onSubmit={handleLogin} style={styles.form}>
+          <h2>Student Login</h2>
+
+          {loginMsg && (
+            <div style={{ ...styles.msg, ...styles.errorMsg }}>
+              {loginMsg}
+            </div>
+          )}
+
+          <input
+            type="text"
+            placeholder="Login ID"
+            value={loginId}
+            onChange={(e) => setLoginId(e.target.value)}
+            style={styles.input}
+            required
+          />
+
+          <input
+            type="password"
+            placeholder="Password"
+            value={loginPassword}
+            onChange={(e) => setLoginPassword(e.target.value)}
+            style={styles.input}
+            required
+          />
+
+          <button type="submit" style={styles.submitBtn}>
             Login
           </button>
-          <button 
-            style={{...styles.tabBtn, ...(!showLogin ? styles.activeTab : {})}}
-            onClick={() => {
-              setShowLogin(false);
-              setLoginMsg('');
-              setRegMsg('');
-            }}
-          >
-            Register
-          </button>
-        </div>
-
-        {showLogin ? (
-          <form onSubmit={handleLogin} style={styles.form}>
-            <h2>Student Login</h2>
-            {loginMsg && <div style={{...styles.msg, ...styles.errorMsg}}>{loginMsg}</div>}
-            
-            <input
-              type="email"
-              placeholder="Email"
-              value={loginEmail}
-              onChange={(e) => setLoginEmail(e.target.value)}
-              style={styles.input}
-              required
-            />
-            
-            <input
-              type="password"
-              placeholder="Password"
-              value={loginPassword}
-              onChange={(e) => setLoginPassword(e.target.value)}
-              style={styles.input}
-              required
-            />
-            
-            <button type="submit" style={styles.submitBtn}>Login</button>
-          </form>
-        ) : (
-          <form onSubmit={handleRegister} style={styles.form}>
-            <h2>Student Register</h2>
-            {regMsg && (
-              <div style={{
-                ...styles.msg,
-                ...(regMsg.includes('successful') ? styles.successMsg : styles.errorMsg)
-              }}>
-                {regMsg}
-              </div>
-            )}
-            
-            <input
-              type="text"
-              placeholder="Full Name"
-              value={regName}
-              onChange={(e) => setRegName(e.target.value)}
-              style={styles.input}
-              required
-            />
-            
-            <input
-              type="email"
-              placeholder="Email"
-              value={regEmail}
-              onChange={(e) => setRegEmail(e.target.value)}
-              style={styles.input}
-              required
-            />
-            
-            <input
-              type="password"
-              placeholder="Password"
-              value={regPassword}
-              onChange={(e) => setRegPassword(e.target.value)}
-              style={styles.input}
-              required
-            />
-            
-            <button type="submit" style={styles.submitBtn}>Register</button>
-          </form>
-        )}
+        </form>
       </div>
     </div>
   );
@@ -201,24 +166,6 @@ const styles = {
     width: '100%',
     maxWidth: '380px',
     overflow: 'hidden'
-  },
-  tabs: {
-    display: 'flex',
-    borderBottom: '1px solid #eee'
-  },
-  tabBtn: {
-    flex: 1,
-    padding: '15px',
-    fontSize: '16px',
-    fontWeight: 'bold',
-    background: 'none',
-    border: 'none',
-    cursor: 'pointer',
-    color: '#666'
-  },
-  activeTab: {
-    color: '#667eea',
-    borderBottom: '2px solid #667eea'
   },
   form: {
     padding: '30px'
@@ -253,11 +200,6 @@ const styles = {
     background: '#fee',
     color: '#c33',
     border: '1px solid #fcc'
-  },
-  successMsg: {
-    background: '#efe',
-    color: '#3a6',
-    border: '1px solid #cfc'
   },
   logoutBtn: {
     marginTop: '20px',
