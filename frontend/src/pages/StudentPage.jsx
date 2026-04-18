@@ -37,24 +37,121 @@ const styles = `
  *   onSubject(subject)  — called when a subject card is clicked, receives the subject object
  *   onTakePhoto()       — called when "Take Photos" button is clicked
  */
+
+const css = {
+  overlay: {
+    position: "fixed",
+    top: 0,
+    left: 0,
+    width: "100%",
+    height: "100%",
+    background: "rgba(0,0,0,0.5)",
+    display: "flex",
+    justifyContent: "center",
+    alignItems: "center",
+    zIndex: 999,
+  },
+
+  popup: {
+    background: "#fff",
+    padding: "30px",
+    borderRadius: "12px",
+    minWidth: "320px",
+    textAlign: "center",
+    boxShadow: "0 15px 40px rgba(0,0,0,0.25)",
+    animation: "fadeUp 0.3s ease",
+  },
+
+  closeBtn: {
+    marginTop: "20px",
+    padding: "8px 16px",
+    background: "#1a5276",
+    color: "#fff",
+    border: "none",
+    borderRadius: "6px",
+    cursor: "pointer",
+  },
+};
+
+
 export default function StudentPage({ onSubject, onTakePhoto }) {
   const [hovered, setHovered] = useState(null);
   const [student_id, setStudent_id] =useState(null);
   const [student_name,setStudent_name]=useState(null);
+  const [sub,setSub]=useState(null);
+  const [subjects, setSubjects] = useState([]);
   const navigate = useNavigate();
   const location=useLocation();
 const [isLoggedIn, setIsLoggedIn] = useState(false);
+const [showPopup, setShowPopup] = useState(false);
+const [attendanceData, setAttendanceData] = useState(null);
+const [loadingPopup, setLoadingPopup] = useState(false);
 
   const getLoginStatus = () => {
   return location.state?.logged || false;
 };
+
+const role=location.state?.role;
 useEffect(() => {
-  if (location.state?.logged) {
-    setIsLoggedIn(true);
+  const token = localStorage.getItem("token");
+
+  if (!token) {
+    navigate("/login", { state: { role: role } });
+    return;
   }
-  setStudent_id(location.state?.id);
-  setStudent_name(location.state?.name);
-}, [location.state]);
+
+  setIsLoggedIn(true);
+  setStudent_name(localStorage.getItem("user"));
+  setStudent_id(localStorage.getItem("id"));
+
+  // 🔥 FETCH SUBJECTS
+  const fetchSubjects = async () => {
+    try {
+      const res = await fetch("http://localhost:3000/student/subjects", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      const data = await res.json();
+      setSubjects(data); // expected: [{ Subject, Section, ... }]
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  fetchSubjects();
+}, []);
+
+  const fetchAttendance = async (subject, section) => {
+        try {
+          console.log("fetch");
+          setLoadingPopup(true);
+          setShowPopup(true);
+
+          const token = localStorage.getItem("token");
+
+          const res = await fetch("http://localhost:3000/student/attendance", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify({
+              subject,
+              section,
+            }),
+          });
+          
+          const data = await res.json();
+          console.log(data);
+          setAttendanceData(data);
+        } catch (err) {
+          console.error(err);
+        } finally {
+          setLoadingPopup(false);
+        }
+      };
   
   return (
     <>
@@ -115,7 +212,7 @@ useEffect(() => {
     </>
   ) : (
     <>
-      <span>Welcome, {student_name?.user_id}</span>
+      <span>Welcome, {student_name}</span>
 
       <button onClick={onTakePhoto}>
         📷 Take Photos
@@ -125,6 +222,8 @@ useEffect(() => {
         setIsLoggedIn(false);
         setStudent_id(null);
         setStudent_name(null);
+        localStorage.clear();
+
       }}>
         Logout
       </button>
@@ -139,55 +238,104 @@ useEffect(() => {
           gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))",
           gap: 24, padding: "48px",
         }}>
-          {SUBJECTS.map((subj, i) => (
+          {subjects.map((subj, i) => (
             <button
-              key={subj.id}
+              key={i}
               onClick={() => {
-                //navigate("/student/attendance",{state: {subject:subj}});
+                fetchAttendance(subj.Subject, subj.Section);
+                console.log("fetching");
+                setSub(subj.Subject);
               }}
-              onMouseEnter={() => setHovered(subj.id)}
+              onMouseEnter={() => setHovered(i)}
               onMouseLeave={() => setHovered(null)}
               style={{
-                background: hovered === subj.id ? subj.accent : "#fff",
-                border: `2px solid ${hovered === subj.id ? subj.accent : "#ece8e0"}`,
+                background: hovered === i ? "#1a5276" : "#fff",
+               border: `2px solid ${hovered === i ? "#1a5276" : "#ece8e0"}`,
                 borderRadius: 4,
                 padding: "36px 32px",
                 cursor: "pointer",
                 textAlign: "left",
                 transition: "all 0.25s ease",
-                transform: hovered === subj.id ? "translateY(-4px)" : "translateY(0)",
-                boxShadow: hovered === subj.id ? `0 12px 32px ${subj.accent}33` : "0 2px 8px rgba(0,0,0,0.04)",
+                transform: hovered === i ? "translateY(-4px)" : "translateY(0)",
+                boxShadow:
+                  hovered === i
+                    ? "0 12px 32px rgba(26,82,118,0.2)"
+                    : "0 2px 8px rgba(0,0,0,0.04)",
                 animation: "fadeUp 0.5s ease both",
                 animationDelay: `${i * 0.07}s`,
               }}
             >
-              <div style={{ fontSize: 32, marginBottom: 16 }}>{subj.icon}</div>
-              <p style={{
-                fontFamily: "'Cormorant Garamond', serif",
-                fontSize: 22, fontWeight: 700,
-                color: hovered === subj.id ? "#fff" : "#1a1a1a",
-                marginBottom: 6, lineHeight: 1.2,
-                transition: "color 0.22s",
-              }}>{subj.name}</p>
-              <p style={{
-                fontSize: 12, letterSpacing: "0.04em",
-                color: hovered === subj.id ? "rgba(255,255,255,0.75)" : "#aaa",
-                transition: "color 0.22s",
-              }}>{subj.desc}</p>
+              <div style={{ fontSize: 32, marginBottom: 16 }}>
+                📘
+              </div>
 
-              <div style={{
-                marginTop: 24,
-                display: "flex", alignItems: "center", gap: 6,
-                fontSize: 11, letterSpacing: "0.14em", textTransform: "uppercase",
-                color: hovered === subj.id ? "rgba(255,255,255,0.9)" : subj.accent,
-                fontWeight: 500, transition: "color 0.22s",
-              }}>
-                Open subject <span style={{ fontSize: 14 }}>→</span>
+              <p
+                style={{
+                  fontSize: 22,
+                  fontWeight: 700,
+                  color: hovered === i ? "#fff" : "#1a1a1a",
+                  marginBottom: 6,
+                  transition: "color 0.22s",
+                }}
+              >
+                {subj.Subject}
+              </p>
+
+              <p
+                style={{
+                  fontSize: 12,
+                  color: hovered === i ? "rgba(255,255,255,0.75)" : "#aaa",
+                  transition: "color 0.22s",
+                }}
+              >
+                Section: {subj.Section}
+              </p>
+
+              <div
+                style={{
+                  marginTop: 24,
+                  fontSize: 11,
+                  letterSpacing: "0.14em",
+                  textTransform: "uppercase",
+                  color: hovered === i ? "#fff" : "#1a5276",
+                  fontWeight: 500,
+                }}
+              >
+                Open subject →
               </div>
             </button>
           ))}
         </div>
       </div>
+
+      {showPopup && (
+      <div style={css.overlay}>
+        <div style={css.popup}>
+          <h2>📊 Attendance Details</h2>
+
+          {loadingPopup ? (
+            <p>Loading...</p>
+          ) : attendanceData ? (
+            <>
+              <p><b>Subject</b> {sub}</p>
+              <p><b>Classes Attended:</b> {attendanceData[0].no_of_present}</p>
+              <p><b>Total Classes:</b> {attendanceData[0].no_of_classes}</p>
+
+              <p>
+                <b>Percentage:</b>{" "}
+                {Math.round((attendanceData.attended / attendanceData.total) * 100)}%
+              </p>
+            </>
+          ) : (
+            <p>No data available</p>
+          )}
+
+          <button style={css.closeBtn} onClick={() => setShowPopup(false)}>
+            Close
+          </button>
+        </div>
+      </div>
+    )}
     </>
   );
 }

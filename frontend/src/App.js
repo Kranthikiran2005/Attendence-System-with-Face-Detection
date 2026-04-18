@@ -8,7 +8,8 @@ import StudentPage from './pages/StudentPage';
 import Login from './pages/Login'
 import Register from './pages/register';
 import TeacherPage from './pages/Teacher';
-import Attendence from './pages/attendence';
+import AttendancePage from './pages/attendence';
+import AddSubject from './pages/addSubject';
 function App() {
   return (
 
@@ -19,8 +20,8 @@ function App() {
       <Route path="/register" element={<Register/>}/>
       <Route path="/student" element={<StudentPage/>}/>
       <Route path="/teacher" element={<TeacherPage/>}/>
-      <Route path="/teacher/attendence" element={<Attendence/>}/>
-     
+      <Route path="/teacher/attendance" element={<AttendancePage/>}/>
+      <Route path="/teacher/add_subject" element={<AddSubject/>}/>
     </Routes>
     
   );

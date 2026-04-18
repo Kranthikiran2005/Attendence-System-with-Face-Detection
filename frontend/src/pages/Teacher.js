@@ -1,14 +1,72 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 
 const styles = {
   "@import": "https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=DM+Mono:wght@400;500&display=swap",
 };
 
+const SUBJECT_STYLES = {
+  english: { icon: "📘", accent: "#2980b9" },
+  mathematics: { icon: "∑", accent: "#8e44ad" },
+  physics: { icon: "⚛", accent: "#d4a017" },
+  chemistry: { icon: "⚗", accent: "#27ae60" },
+  biology: { icon: "🧬", accent: "#16a085" },
+  history: { icon: "📜", accent: "#ca6f1e" },
+  "computer science": { icon: "⌨", accent: "#1a5276" },
+}; 
+
 export default function TeacherPage() {
   const [activeNav, setActiveNav] = useState("Dashboard");
 const navigate = useNavigate();
   const navItems = ["Attendence"];
+  const [subjects, setSubjects] = useState([]);
+  const [selected, setSelected] = useState(null);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [hovered, setHovered] = useState(null);
+  const name=localStorage.getItem("user") || "Teacher";
+  console.log(name);
+
+  useEffect(() => {
+  const fetchSubjects = async () => {
+    const token=localStorage.getItem("token");
+    if (token) {
+      setIsLoggedIn(true);
+    }
+  else{
+    navigate("/login",{state: {role: "teacher"}});
+  }
+
+    try {
+      const teacherId = localStorage.getItem("userId");
+      
+
+      if (!token) {
+        console.error("No token found");
+        return;
+      }
+      const res = await fetch(
+        "http://localhost:3000/teacher/subjects/",{
+          method: "GET",
+          headers: {
+            "Content-Type":"application/json",
+            "Authorization":`Bearer ${token}`
+          }
+        }
+      );
+
+      if (!res.ok) throw new Error("Failed to fetch");
+
+      const data = await res.json();
+      console.log(data);
+      setSubjects(data);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  fetchSubjects();
+
+}, []);
 
   return (
     <div style={css.wrapper}>
@@ -44,15 +102,27 @@ const navigate = useNavigate();
       {/* Main content */}
       <main style={css.main}>
         <div style={css.topBar}>
-          <h1 style={css.pageTitle}>Teacher Dashboard</h1>
-          <span style={css.date}>Sunday, April 12, 2026</span>
-        </div>
+        <h1 style={css.pageTitle}>Teacher Dashboard</h1>
+
+        <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
+        <button
+        style={css.addBtn}
+        onClick={() => navigate("/teacher/add_subject")}
+        >
+        + Add Subject
+      </button>
+        <button onClick={()=>{localStorage.clear();
+          navigate("/login",{state :{role : "teacher"}});}
+        }>Logout</button>
+      <span style={css.date}>Sunday, April 12, 2026</span>
+      </div>  
+      </div>
 
         {/* Profile card */}
         <div style={css.profileCard}>
           <div style={css.avatar}>MK</div>
           <div>
-            <div style={css.teacherName}>Mr. Mohan Kumar</div>
+            <div style={css.teacherName}>{name}</div>
             <div style={css.teacherMeta}>
               Mathematics &nbsp;·&nbsp; Class 10-B &nbsp;·&nbsp; ID: TCH-204
             </div>
@@ -70,7 +140,98 @@ const navigate = useNavigate();
             </div>
           ))}
         </div>
+
+          <div style={css.cardGrid}>
+  {subjects &&
+    subjects.map((sub, i) => {
+      console.log(sub);
+      console.log("Hi");
+      const subject=sub.Subject;
+      const section=sub.Section;
+      const style2 = SUBJECT_STYLES[subject.toLowerCase()];
+
+      const isActive = selected === sub;
+
+      return (
+        <button
+          key={i}
+          onClick={() => {setSelected(sub);
+            navigate("/teacher/attendance",{state : {subject: subject, section:section}})
+          }}
+          onMouseEnter={() => setHovered(i)}
+          onMouseLeave={() => setHovered(null)}
+          style={{
+            background:
+              hovered === i || isActive ? style2.accent : "#fff",
+            border: `2px solid ${
+              hovered === i || isActive ? style2.accent : "#ece8e0"
+            }`,
+            borderRadius: "10px",
+            padding: "24px",
+            cursor: "pointer",
+            textAlign: "left",
+            transition: "all 0.25s ease",
+            transform:
+              hovered === i ? "translateY(-4px)" : "translateY(0)",
+            boxShadow:
+              hovered === i
+                ? `0 12px 32px ${style2.accent}33`
+                : "0 2px 8px rgba(0,0,0,0.04)",
+          }}
+        >
+          {/* ICON */}
+          <div style={{ fontSize: 28, marginBottom: 12 }}>
+            {style2.icon}
+          </div>
+
+          {/* SUBJECT NAME */}
+          <p
+            style={{
+              fontSize: 18,
+              fontWeight: "600",
+              color:
+                hovered === i || isActive ? "#fff" : "#1a1a1a",
+              marginBottom: 6,
+            }}
+          >
+            {sub.Subject}
+          </p>
+
+          {/* SECTION */}
+          <p
+            style={{
+              fontSize: 13,
+              color:
+                hovered === i || isActive
+                  ? "rgba(255,255,255,0.8)"
+                  : "#888",
+            }}
+          >
+            Section: {sub.Section}
+          </p>
+
+          {/* CTA */}
+          <div
+            style={{
+              marginTop: 16,
+              fontSize: 11,
+              textTransform: "uppercase",
+              letterSpacing: "0.1em",
+              color:
+                hovered === i || isActive
+                  ? "#fff"
+                  : style2.accent,
+            }}
+          >
+            Select →
+          </div>
+        </button>
+      );
+    })}
+</div>
+
       </main>
+      
     </div>
   );
 }
@@ -142,20 +303,15 @@ const css = {
   navDotActive: {
     background: "#185FA5",
   },
-  attBtn: {
-    marginTop: "auto",
-    width: "100%",
-    padding: "10px 0",
-    fontSize: "14px",
-    fontWeight: "500",
-    fontFamily: "'DM Sans', sans-serif",
-    borderRadius: "8px",
-    border: "none",
-    background: "#185FA5",
-    color: "#E6F1FB",
-    cursor: "pointer",
-    transition: "opacity 0.15s",
-  },
+  addBtn: {
+  padding: "8px 14px",
+  background: "#1a1a1a",
+  color: "#fff",
+  border: "none",
+  borderRadius: "8px",
+  cursor: "pointer",
+  fontSize: "13px",
+},
   main: {
     flex: 1,
     padding: "1.75rem 2rem",
@@ -233,4 +389,16 @@ const css = {
     color: "#1a1a1a",
     letterSpacing: "-0.5px",
   },
+  cardGrid: {
+  display: "grid",
+  gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))",
+  gap: "12px",
+},
+
+subjectCard: {
+  background: "#fff",
+  padding: "12px",
+  borderRadius: "10px",
+  cursor: "pointer",
+},
 };

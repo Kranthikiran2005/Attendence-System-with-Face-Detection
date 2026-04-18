@@ -14,13 +14,32 @@ const db = require('./db');
 
 app.use(express.json());
 app.use(cors({
-    origin: "http://localhost:3001",
+    origin: "http://localhost:3001 ",
     credentials: true
 }));
 app.get('/', async (req, res) => {
   console.log("Hi");
   
 });
+
+
+const verifyToken= (req,res,next) => {
+  const bearer= req.headers["authorization"];
+
+  if(!bearer){
+    res.status(403).json({message: "No token provided"});
+  }
+  const token=bearer.split(" ")[1];
+
+  jwt.verify(token,SECRET,(err,decoded)=>{
+    if(err){
+      return res.status(403).json({message: "Invalid token"});
+    }
+    req.user=decoded;
+    next();
+  });
+
+};
 
 app.post("/login", async (req, res) => {
   try {
@@ -42,34 +61,40 @@ app.post("/login", async (req, res) => {
     }
 
     const [rows] = await db.query(sql, [id]);
-
     if (rows.length === 0) {
       return res.status(404).json({ message: "User not found" });
     }
 
     // ❗ Plain check (replace with bcrypt ideally)
-    if (rows[0].password !== password) {
+    const isMatch=await bcrypt.compare(password,rows[0].password);
+
+
+    if (!isMatch) {
       return res.status(401).json({ message: "Invalid password" });
     }
 
     const token = jwt.sign(
-      { userId: id },
+      { userId: id, role: role },
       SECRET,
       { expiresIn: "1h" }
     );
+    console.log(rows[0].S_Name)
 
     if (role === "student") {
-      res.json({
+      return res.json({
         token,
         user_name: rows[0].S_Name,
-        id: rows[0].S_ID
+        id: id
       });
     } else {
-      res.json({
+      return res.json({
         token,
-        user_name: rows[0].T_NAME
+        user_name: rows[0].T_NAME,
+        id: id
       });
     }
+
+    return res.status(200).json({message : "Success", userId:id, name:rows[0].name})
 
   } catch (err) {
     console.log(err);
@@ -81,13 +106,16 @@ app.post('/register', async (req, res) => {
   try {
     const { name, section, user_id, pwd, role } = req.body;
 
-    console.log(user_id, pwd, role);
+    const hashedPassword=await bcrypt.hash(pwd,8);
+
+
+
 
     if (role === "Student") {
       console.log("Hi1");
       const sql = "INSERT INTO student (S_ID, S_Name, Sec, password) VALUES (?, ?, ?, ?)";
       
-      await db.query(sql, [user_id, name, section, pwd]);
+      await db.query(sql, [user_id, name, section, hashedPassword]);
 
       return res.status(201).json({ message: "User registered successfully" });
     }
@@ -95,7 +123,7 @@ app.post('/register', async (req, res) => {
       console.log(role);
       const sql="INSERT INTO teacher (T_ID,T_Name,password) VALUES (?,?,?)";
 
-      await db.query(sql,[user_id,name,pwd]);
+      await db.query(sql,[user_id,name,hashedPassword]);
       return res.status(201).json({ message: "User registered successfully" });
     }
     console.log("Hi2");
@@ -110,7 +138,144 @@ app.post('/register', async (req, res) => {
 
     return res.status(500).json({ message: "Database error" });
   }
+}); 
+app.get("/student/subjects",verifyToken,async (req,res)=>{
+    const studentId = req.user.userId;
+
+    const [rows]=await db.query("SELECT Sec FROM student WHERE S_ID=?",[studentId]);
+    //console.log(rows);
+    const section=rows[0].Sec;
+    //console.log(section);
+    const [subjects]=await db.query("SELECT Subject,Section FROM subject WHERE Section=?",[section]);
+    //console.log(subjects);
+
+    return res.json(subjects);
 });
+
+app.post("/student/attendance",verifyToken,async(req,res)=>{
+  const studentId = req.user.userId;
+
+  console.log("Hi");
+  const subject=req.body.subject;
+  console.log(subject);
+
+  const [rows]=await db.query("SELECT no_of_present,no_of_classes FROM attendance WHERE S_ID=? AND Sub=?",[studentId,subject]);
+  console.log(rows);
+  return res.json(rows);
+
+});
+app.get("/teacher/subjects", verifyToken, async (req, res) => {
+  try {
+    const teacherId = req.user.userId;
+    
+
+    // Optional: check if already exists
+    const [existing] = await db.query(
+      "SELECT Subject,Section FROM subject WHERE T_ID=?",
+      [teacherId]
+    );
+
+    if (existing.length > 0) {
+      //console.log("Subjects are available");
+    }
+
+
+    return res.json(existing);
+
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({ message: "Error finding subject" });
+  }
+});
+
+
+app.post("/teacher/add-subject",verifyToken, async (req, res) => {
+  try {
+    
+
+    const teacherId = req.user.userId;
+    const { subject, section } = req.body;
+
+    if (!subject || !section) {
+      return res.status(400).json({ error: "All fields required" });
+    }
+    const [rows]=await db.query("SELECT S_ID FROM student WHERE Sec=?",[section]);
+    console.log(rows);
+    await db.query(
+      "INSERT INTO subject (Subject, Section, T_ID) VALUES (?, ?, ?)",
+      [subject, section,teacherId]
+    );
+    if(rows.length>0){
+      for(student of rows){
+        await db.query("INSERT INTO attendance (S_ID,T_ID,Sub) VALUES(?,?,?)",[student.S_ID,teacherId,subject]);
+      } 
+    }
+    
+
+    res.json({ message: "Subject added" });
+  } catch (err) {
+    console.error(err);
+
+    if (err.code === "ER_DUP_ENTRY") {
+      return res.status(400).json({
+        error: "Subject already registered for this section",
+      });
+    }
+    res.status(500).json({ error: "Server error" });
+  }
+});
+
+app.get("/students/:subject/:section",async(req,res)=>{
+  try{
+    const teacherId = 555;
+    const subject=req.params.subject;
+    const section=req.params.section;
+    console.log(subject);
+    console.log(section);
+
+    const [students]=await db.query("SELECT A.S_ID, A.S_Name,B.no_of_present FROM student A JOIN attendance B ON A.S_ID=B.S_ID WHERE B.Sub=? AND B.T_ID=? AND A.Sec=?",[subject,teacherId,section]);
+    
+    if(students.length==0){
+      console.log("No Students");
+    }
+    console.log(students);
+    return res.json(students);
+
+  }
+  catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Server error" });
+  }
+});
+
+app.delete("/students/course/delete/:subject/:section",verifyToken,async(req,res)=>{
+  try{
+    const teacherId = 555;
+    const subject=req.params.subject;
+    const section=req.params.section;
+    console.log(subject);
+    console.log(section);
+
+    
+    await db.query("DELETE FROM subject WHERE Subject=? AND Section=? AND T_ID=?",[subject,section,teacherId]);
+
+    const [rows]=await db.query("SELECT S_ID FROM student WHERE Sec=?",[section]);
+
+    if(rows.length>0){
+      for(student of rows){
+        await db.query("DELETE FROM attendance WHERE S_ID=? AND T_ID=? AND Sub=?",[student.S_ID,teacherId,subject]);
+      } 
+    }
+    
+
+  }
+  catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Server error" });
+  }
+});
+
+
 
 app.listen(3000, () => {
   console.log('Server running on http://localhost:3000');

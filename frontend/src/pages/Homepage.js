@@ -14,6 +14,7 @@ const styles = `
     align-items: center;
     justify-content: center;
   }
+    
 
   .container {
     position: fixed;
@@ -117,6 +118,19 @@ export default function RoleSelector() {
   return (
     <>
       <style>{styles}</style>
+
+      <div style={{
+      position: "fixed",
+      top: "20px",
+      right: "30px",
+    }}>
+      <button
+        onClick={() => navigate("/register")}
+      >
+        Register
+      </button>
+    </div>
+
       <div className="container">
         <p className="heading">Select your role</p>
 
@@ -125,7 +139,7 @@ export default function RoleSelector() {
             className={`option-btn ${selected === "student" ? "active" : ""}`}
             onClick={() => {
             setSelected("student");
-            navigate("/student");
+            navigate("/student",{ state: { role: "student" } });
           }}
           >
             <span>Student</span>
@@ -137,7 +151,7 @@ export default function RoleSelector() {
             className={`option-btn ${selected === "teacher" ? "active" : ""}`}
             onClick={() =>{ 
               setSelected("teacher");
-              navigate("/teacher");
+              navigate("/teacher",{ state: { role: "teacher" } });
             }}
           >
             <span>Teacher</span>

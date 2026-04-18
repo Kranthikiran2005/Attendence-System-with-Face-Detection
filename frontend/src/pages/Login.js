@@ -19,10 +19,13 @@ function Login() {
   });
   const navigate=useNavigate();
   const location=useLocation();
+  const role=location.state?.role;
   const handleLogin = async (e) => {
     e.preventDefault();
-    
+    console.log("HI1");
     const role = location.state?.role;
+    console.log(role);
+
     if (role ==="student"){
       try {
       const res = await fetch("http://localhost:3000/login", {
@@ -48,9 +51,12 @@ function Login() {
       setLoggedInUser(data.user);
       
       setLoginMsg("");
-      navigate("/student", {
-    state: { id: res.id,user: res.user_name, token:res.token, logged:true }
-    });
+      console.log(data.token);
+      console.log("HI2");
+      localStorage.setItem("token",data.token);
+      localStorage.setItem("user",data.user_name);
+      localStorage.setItem("id", data.id);
+      navigate("/student");
     } catch (err) {
       setLoginMsg("Server error");
       console.error(err);
@@ -81,9 +87,11 @@ function Login() {
       setLoggedInUser(data.user);
       
       setLoginMsg("");
-      navigate("/teacher", {
-    state: { user: res.user_name, token:res.token }
-    });
+
+      localStorage.setItem("token",data.token);
+      localStorage.setItem("user",data.user_name);
+      localStorage.setItem("id", data.id);
+      navigate("/teacher");
     } catch (err) {
       setLoginMsg("Server error");
       console.error(err);

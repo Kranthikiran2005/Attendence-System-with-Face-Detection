@@ -1,106 +1,255 @@
-import React, { useState } from "react";
+import { useEffect, useState } from "react";
+import { useLocation } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
-const Attendence = () => {
-  const [section, setSection] = useState("");
-  const [subject, setSubject] = useState("");
+export default function AttendancePage() {
+  const location = useLocation();
+  const navigate = useNavigate();
+  const subject = location.state?.subject;
+  const section = location.state?.section;
+
+  const [students, setStudents] = useState([]);
+  const [attendance, setAttendance] = useState({});
+  const [started, setStarted] = useState(false);
+
+  // 🔹 Fetch students
+  useEffect(() => {
+    const fetchStudents = async () => {
+      try {
+        const token = localStorage.getItem("token");
+
+        const res = await fetch(
+          `http://localhost:3000/students/${subject}/${section}`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+
+        const data = await res.json();
+        setStudents(data);
+      } catch (err) {
+        console.error(err);
+      }
+    };
+
+    if (section) fetchStudents();
+  }, [section]);
+
+  // 🔹 Handle checkbox
+  const markAttendance = (id) => {
+    console.log("Clicked:", id); 
+    setAttendance((prev) => {
+        if (prev[id]) return prev;
+
+        return {
+            ...prev,
+            [id]: true,
+        };
+      
+    });
+  };
+  const handleEndClass = async () => {
+  try {
+    const token = localStorage.getItem("token");
+
+    const res = await fetch("http://localhost:3000/attendance/mark", {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({
+        subject,
+        section,
+        attendance,
+      }),
+    });
+
+    const data = await res.json();
+
+    if (res.ok) {
+      alert("✅ Attendance saved");
+    } else {
+      alert(data.error || "❌ Failed");
+    }
+  } catch (err) {
+    console.error(err);
+  }
+};
+
+const handleDeleteCourse = async () => {
+  const confirmDelete = window.confirm("Are you sure you want to delete this course?");
+  if (!confirmDelete) return;
+
+  try {
+    const token = localStorage.getItem("token");
+
+    const res = await fetch(
+      `http://localhost:3000/students/course/delete/${subject}/${section}`,
+      {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+
+    const data = await res.json();
+
+    if (res.ok) {
+      alert("✅ Course deleted");
+      navigate("/teacher");
+    } else {
+      alert(data.error || "❌ Failed to delete");
+    }
+  } catch (err) {
+    console.error(err);
+  }
+};
 
   return (
-    <div style={styles.container}>
-      <div style={styles.card}>
-        <h2>Attendence Panel</h2>
+    <div style={css.wrapper}>
+      {/* Sidebar */}
+      <aside style={css.sidebar}>
+        <h2 style={css.logo}>Attendance</h2>
 
-        {/* Section Dropdown */}
-        <div style={styles.field}>
-          <label>Section:</label>
-          <select
-            value={section}
-            onChange={(e) => setSection(e.target.value)}
-            style={styles.select}
-          >
-            <option value="">Select Section</option>
-            <option value="A">Section A</option>
-            <option value="B">Section B</option>
-            <option value="C">Section C</option>
-          </select>
-        </div>
+        <button
+          style={{
+            ...css.btn,
+            background: started ? "#aaa" : "#185FA5",
+          }}
+          onClick={() => setStarted(true)}
+          disabled={started}
+        >
+          ▶ Start Class
+        </button>
 
-        {/* Subject Dropdown */}
-        <div style={styles.field}>
-          <label>Subject:</label>
-          <select
-            value={subject}
-            onChange={(e) => setSubject(e.target.value)}
-            style={styles.select}
-          >
-            <option value="">Select Subject</option>
-            <option value="Math">Mathematics</option>
-            <option value="Science">Science</option>
-            <option value="English">English</option>
-          </select>
-        </div>
+        <button
+          style={{
+            ...css.btn,
+            background: "#e74c3c",
+          }}
+          onClick={() => {
+            setStarted(false);
+            console.log("Final Attendance:", attendance);
 
-        {/* Buttons */}
-        <div style={styles.buttonContainer}>
-          <button style={styles.startBtn}>
-            Start Session
-          </button>
+          }}
+        >
+          ■ End Class
+        </button>
+      </aside>
 
-          <button style={styles.endBtn}>
-            End Session
-          </button>
-        </div>
+      {/* Main */}
+      <main style={css.main}>
+        <div style={css.header}>
+        <h1>{subject} - Section {section}</h1>
+
+        <button style={css.deleteBtn} onClick={handleDeleteCourse}>
+          🗑 Delete Course
+        </button>
       </div>
+          
+        <table style={css.table}>
+          <thead>
+            <tr>
+              <th style={css.th}>ID</th>
+              <th style={css.th}>Name</th>
+              <th style={css.th}>Classes Attended</th>
+              <th style={css.th}>Present</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            {students.map((stu) => (
+              <tr key={stu.S_ID}>
+                <td style={css.td}>{stu.S_ID}</td>
+                <td style={css.td}>{stu.S_Name}</td>
+                <td style={css.td}>{stu.no_of_present + (attendance[stu.S_ID]?1:0)}</td>
+
+                <td>
+                  <input
+                    type="checkbox"
+                    disabled={!started || attendance[stu.S_ID]}
+                    checked={attendance[stu.S_ID] || false}
+                    onChange={() => markAttendance(stu.S_ID)}
+                  />
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </main>
     </div>
   );
-};
+}
 
-const styles = {
-  container: {
-    height: "100vh",
+const css = {
+  wrapper: {
     display: "flex",
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: "#f4f6f8",
+    minHeight: "100vh",
+    fontFamily: "'DM Sans', sans-serif",
+    background: "#f5f4f0",
   },
-  card: {
-    backgroundColor: "#fff",
-    padding: "30px",
-    borderRadius: "10px",
-    width: "350px",
-    boxShadow: "0 4px 10px rgba(0,0,0,0.1)",
-  },
-  field: {
-    marginBottom: "15px",
+
+  sidebar: {
+    width: "220px",
+    background: "#fff",
+    padding: "20px",
+    borderRight: "1px solid #ddd",
     display: "flex",
     flexDirection: "column",
+    gap: "15px",
   },
-  select: {
-    padding: "8px",
-    marginTop: "5px",
-    borderRadius: "5px",
-    border: "1px solid #ccc",
+
+  logo: {
+    fontSize: "18px",
+    fontWeight: "600",
+    marginBottom: "20px",
   },
-  buttonContainer: {
-    display: "flex",
-    justifyContent: "space-between",
+  header: {
+  display: "flex",
+  justifyContent: "space-between",
+  alignItems: "center",
+},
+
+deleteBtn: {
+  padding: "8px 14px",
+  background: "#e74c3c",
+  color: "#fff",
+  border: "none",
+  borderRadius: "8px",
+  cursor: "pointer",
+},
+  btn: {
+    padding: "10px",
+    border: "none",
+    borderRadius: "8px",
+    color: "#fff",
+    cursor: "pointer",
+  },
+
+  main: {
+    flex: 1,
+    padding: "30px",
+  },
+
+  table: {
+    width: "100%",
+    borderCollapse: "collapse",
     marginTop: "20px",
+    background: "#fff",
   },
-  startBtn: {
-    padding: "10px",
-    backgroundColor: "green",
-    color: "#fff",
-    border: "none",
-    borderRadius: "5px",
-    cursor: "pointer",
+
+  th: {
+    textAlign: "left",
+    padding: "12px",
+    borderBottom: "2px solid #ddd",
   },
-  endBtn: {
+
+  td: {
     padding: "10px",
-    backgroundColor: "red",
-    color: "#fff",
-    border: "none",
-    borderRadius: "5px",
-    cursor: "pointer",
+    borderBottom: "1px solid #eee",
   },
 };
-
-export default Attendence;
