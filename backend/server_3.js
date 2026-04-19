@@ -18,6 +18,8 @@ app.use(cors({
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
 
+
+
 app.get('/', async (req, res) => {
   console.log("Hi");
   
@@ -25,34 +27,6 @@ app.get('/', async (req, res) => {
 const { spawn } = require('child_process');
 const path = require('path');
 
-function runPythonScript(scriptName, inputData) {
-    return new Promise((resolve, reject) => {
-        const scriptPath = path.join(__dirname, scriptName);
-        const pythonPath = path.join(__dirname, 'venv', 'Scripts', 'python');
-        
-        // Spawn Python without passing data as argument
-        const pythonProcess = spawn(pythonPath, [scriptPath]);
-        
-        let output = '';
-        let errorOutput = '';
-        
-        pythonProcess.stdout.on('data', (data) => { output += data.toString(); });
-        pythonProcess.stderr.on('data', (data) => { errorOutput += data.toString(); });
-        
-        pythonProcess.on('close', (code) => {
-            if (code !== 0) reject(new Error(errorOutput));
-            try {
-                resolve(JSON.parse(output.trim()));
-            } catch (e) {
-                reject(new Error(`Invalid JSON: ${output}`));
-            }
-        });
-        
-        // Send the JSON data as a single line to stdin
-        pythonProcess.stdin.write(JSON.stringify(inputData));
-        pythonProcess.stdin.end();
-    });
-}
 
 const verifyToken= (req,res,next) => {
   const bearer= req.headers["authorization"];
@@ -71,6 +45,8 @@ const verifyToken= (req,res,next) => {
   });
 
 };
+
+
 
 app.post("/login", async (req, res) => {
   try {
@@ -308,7 +284,7 @@ app.delete("/students/course/delete/:subject/:section",verifyToken,async(req,res
 
 app.post("/attendance/enroll", async (req, res) => {
   const { image, S_ID } = req.body;
-
+  
   try {
     const base64Data = image.replace(/^data:image\/png;base64,/, "");
 
@@ -339,7 +315,49 @@ app.post("/attendance/enroll", async (req, res) => {
     res.status(500).json({ error: "Failed" });
   }
 });
+app.post("/attendance/match", async (req, res) => {
+  const { image } = req.body;
+
+  try {
+    // 🔹 Step 1: Clean base64
+    const base64Data = image.replace(/^data:image\/png;base64,/, "");
+
+    // 🔹 Step 2: Get embedding from Flask
+    const embedRes = await fetch("http://localhost:5000/embed", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ image: base64Data }),
+    });
+
+    const embedData = await embedRes.json();
+    const embedding = embedData.embedding;
+
+    // 🔹 Step 3: Send embedding to match API
+    const matchRes = await fetch("http://localhost:5000/match", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ input_embedding: embedding }),
+    });
+    
+    const matchData = await matchRes.json();
+
+    // 🔹 Step 4: Return result
+    res.json({
+      student_id: matchData.student_id,
+      score: matchData.score,
+    });
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Matching failed" });
+  }
+});
 
 app.listen(3000, () => {
   console.log('Server running on http://localhost:3000');
+  
 });

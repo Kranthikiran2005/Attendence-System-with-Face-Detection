@@ -3,9 +3,11 @@
 from deepface import DeepFace
 import numpy as np
 import json
+import struct
+import mysql.connector
 
 MODEL_NAME = "Facenet"
-THRESHOLD = 0.7
+THRESHOLD = 0
 
 
 # 🔹 Generate embedding from image path
@@ -21,8 +23,45 @@ def generate_embedding(image_path):
         print("Error generating embedding:", e)
         return None
 
+def SQltoEmbeddings() :
+    
 
-# 🔹 Convert embedding to storable format
+    connection = mysql.connector.connect(
+        host="localhost",
+        user="root", 
+        password="kranthi_mysql#",
+        database="attendance_db"
+    )
+
+    cursor = connection.cursor()
+    cursor.execute("SELECT S_ID, embeddings FROM embeddings")
+
+    rows = cursor.fetchall()
+
+    #for row in rows:
+    #   print(row)
+    
+    stored_embeddings=[]
+
+    for student_id, emb in rows:
+        if emb is None:
+            print("None")
+            continue
+
+        # 🔥 Step 1: decode bytes → string
+        if isinstance(emb, bytes):
+            emb_str = emb.decode('utf-8')
+
+        # 🔥 Step 2: convert string → list
+        emb_list = json.loads(emb_str)
+
+        stored_embeddings.append((student_id, emb_list))
+
+    cursor.close()
+    connection.close()
+    print("Embeddigns:",stored_embeddings)
+    return stored_embeddings
+
 def serialize_embedding(embedding):
     return json.dumps(embedding)
 

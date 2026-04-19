@@ -38,7 +38,7 @@ export default function CameraPage() {
   // Send to backend
   const sendImage = async () => {
     try {
-      const S_ID=119;
+      const S_ID=223;
       const res = await fetch("http://localhost:3000/attendance/enroll", {
         method: "POST",
         headers: {
