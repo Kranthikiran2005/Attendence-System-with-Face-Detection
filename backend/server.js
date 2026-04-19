@@ -11,17 +11,48 @@ const SECRET = "daredevils";
 const app = express();
 
 const db = require('./db');
-
-app.use(express.json());
 app.use(cors({
     origin: "http://localhost:3001 ",
     credentials: true
 }));
+app.use(express.json({ limit: '50mb' }));
+app.use(express.urlencoded({ limit: '50mb', extended: true }));
+
 app.get('/', async (req, res) => {
   console.log("Hi");
   
 });
+const { spawn } = require('child_process');
+const path = require('path');
 
+function runPythonScript(scriptName, inputData) {
+    return new Promise((resolve, reject) => {
+        const scriptPath = path.join(__dirname, scriptName);
+        const pythonPath = path.join(__dirname, 'venv', 'Scripts', 'python');
+        
+        // Spawn Python without passing data as argument
+        const pythonProcess = spawn(pythonPath, [scriptPath]);
+        
+        let output = '';
+        let errorOutput = '';
+        
+        pythonProcess.stdout.on('data', (data) => { output += data.toString(); });
+        pythonProcess.stderr.on('data', (data) => { errorOutput += data.toString(); });
+        
+        pythonProcess.on('close', (code) => {
+            if (code !== 0) reject(new Error(errorOutput));
+            try {
+                resolve(JSON.parse(output.trim()));
+            } catch (e) {
+                reject(new Error(`Invalid JSON: ${output}`));
+            }
+        });
+        
+        // Send the JSON data as a single line to stdin
+        pythonProcess.stdin.write(JSON.stringify(inputData));
+        pythonProcess.stdin.end();
+    });
+}
 
 const verifyToken= (req,res,next) => {
   const bearer= req.headers["authorization"];
@@ -225,9 +256,9 @@ app.post("/teacher/add-subject",verifyToken, async (req, res) => {
   }
 });
 
-app.get("/students/:subject/:section",async(req,res)=>{
+app.get("/students/:subject/:section",verifyToken,async(req,res)=>{
   try{
-    const teacherId = 555;
+    const teacherId = req.user.userId;
     const subject=req.params.subject;
     const section=req.params.section;
     console.log(subject);
@@ -275,7 +306,39 @@ app.delete("/students/course/delete/:subject/:section",verifyToken,async(req,res
   }
 });
 
+app.post("/attendance/enroll", async (req, res) => {
+  const { image, S_ID } = req.body;
 
+  try {
+    const base64Data = image.replace(/^data:image\/png;base64,/, "");
+
+    // call python API
+    const response = await fetch("http://localhost:5000/embed", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ image: base64Data }),
+    });
+
+    const data = await response.json();
+
+    const embedding = data.embedding;
+
+    // store in DB
+    await db.query(
+      "INSERT INTO embeddings (S_ID, embeddings) VALUES (?, ?)",
+      [S_ID, JSON.stringify(embedding)]
+    );
+    console.log("Embeddings added to database");
+
+    res.json({ message: "Embedding stored" });
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Failed" });
+  }
+});
 
 app.listen(3000, () => {
   console.log('Server running on http://localhost:3000');
