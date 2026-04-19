@@ -214,7 +214,7 @@ useEffect(() => {
     <>
       <span>Welcome, {student_name}</span>
 
-      <button onClick={onTakePhoto}>
+      <button onClick={()=>{navigate("/camera_page")}}>
         📷 Take Photos
       </button>
 

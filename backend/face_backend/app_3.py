@@ -28,13 +28,18 @@ def embed():
 
     return jsonify({"embedding": embedding})
 
-
+@app.route("/refreshEmbeddings", methods=["POST"])
+def refresh():
+    global stored_embeddings
+    stored_embeddings = SQltoEmbeddings()
+    return jsonify({"message": "Embeddings refreshed"})
 
 @app.route("/match", methods=["POST"])
 def match():
     
     global stored_embeddings
-    
+    if len(stored_embeddings) == 0:
+        return jsonify({"error": "No embeddings available"}), 400
     data = request.json
     input_embedding = np.array(data["input_embedding"], dtype=np.float32)
 

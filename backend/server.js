@@ -214,7 +214,7 @@ app.post("/teacher/add-subject",verifyToken, async (req, res) => {
     );
     if(rows.length>0){
       for(student of rows){
-        await db.query("INSERT INTO attendance (S_ID,T_ID,Sub) VALUES(?,?,?)",[student.S_ID,teacherId,subject]);
+        await db.query("INSERT INTO attendance (S_ID,T_ID,Sub,Section) VALUES(?,?,?,?)",[student.S_ID,teacherId,subject,section]);
       } 
     }
     
@@ -282,8 +282,9 @@ app.delete("/students/course/delete/:subject/:section",verifyToken,async(req,res
   }
 });
 
-app.post("/attendance/enroll", async (req, res) => {
-  const { image, S_ID } = req.body;
+app.post("/attendance/enroll",verifyToken, async (req, res) => {
+  const student_id=req.user.userId;
+  const { image} = req.body;
   
   try {
     const base64Data = image.replace(/^data:image\/png;base64,/, "");
@@ -301,11 +302,25 @@ app.post("/attendance/enroll", async (req, res) => {
 
     const embedding = data.embedding;
 
+    const [rows]=await db.query("SELECT * FROM embeddings WHERE S_ID=?",student_id);
     // store in DB
-    await db.query(
+    if(rows.length > 0){
+      await db.query("UPDATE embeddings SET embeddings=? WHERE S_ID=?",[JSON.stringify(embedding),student_id]);
+    }
+    else{
+      await db.query(
       "INSERT INTO embeddings (S_ID, embeddings) VALUES (?, ?)",
-      [S_ID, JSON.stringify(embedding)]
+      [student_id, JSON.stringify(embedding)]
     );
+    }
+    await fetch("http://localhost:5000/refreshEmbeddings", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      
+    });
+    
     console.log("Embeddings added to database");
 
     res.json({ message: "Embedding stored" });
@@ -315,13 +330,15 @@ app.post("/attendance/enroll", async (req, res) => {
     res.status(500).json({ error: "Failed" });
   }
 });
-app.post("/attendance/match", async (req, res) => {
-  const { image } = req.body;
+app.post("/attendance/match",verifyToken, async (req, res) => {
+  const T_ID=req.user.userId;
+ 
+  const { image,subject,section } = req.body;
 
   try {
     // 🔹 Step 1: Clean base64
-    const base64Data = image.replace(/^data:image\/png;base64,/, "");
-
+    const base64Data = image.split(',')[1];
+    console.log(base64Data)
     // 🔹 Step 2: Get embedding from Flask
     const embedRes = await fetch("http://localhost:5000/embed", {
       method: "POST",
@@ -344,18 +361,40 @@ app.post("/attendance/match", async (req, res) => {
     });
     
     const matchData = await matchRes.json();
-
+    await db.query ("UPDATE attendance SET no_of_present=no_of_present+1 WHERE S_ID=? AND T_ID = ? AND Section = ? AND Sub = ?",
+      [matchData.student_id,T_ID,section,subject]
+    );
     // 🔹 Step 4: Return result
     res.json({
       student_id: matchData.student_id,
       score: matchData.score,
     });
-
+    
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "Matching failed" });
   }
 });
+app.post("/teacher/attendance",verifyToken,async(req,res)=>{
+  const T_ID = req.user.userId;
+  const { section, subject } = req.body;
+  console.log("Sahil san")
+  try {
+     await db.query(
+      `UPDATE attendance 
+       SET no_of_classes = no_of_classes + 1 
+       WHERE T_ID = ? AND Section = ? AND Sub = ?`,
+      [T_ID, section, subject]
+    );
+
+    res.json({ message: "Class count updated successfully" });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Database error" });
+  }
+})
+
+
 
 app.listen(3000, () => {
   console.log('Server running on http://localhost:3000');

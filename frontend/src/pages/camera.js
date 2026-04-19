@@ -6,7 +6,7 @@ export default function CameraPage() {
 
   const [stream, setStream] = useState(null);
   const [image, setImage] = useState(null);
-
+  const token=localStorage.getItem("token");
   // Start camera
   const startCamera = async () => {
     try {
@@ -38,13 +38,13 @@ export default function CameraPage() {
   // Send to backend
   const sendImage = async () => {
     try {
-      const S_ID=223;
       const res = await fetch("http://localhost:3000/attendance/enroll", {
         method: "POST",
         headers: {
+          Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ image, S_ID }),
+        body: JSON.stringify({ image }),
       });
 
       const data = await res.json();

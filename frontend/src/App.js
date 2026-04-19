@@ -8,7 +8,7 @@ import StudentPage from './pages/StudentPage';
 import Login from './pages/Login'
 import Register from './pages/register';
 import TeacherPage from './pages/Teacher';
-import AttendancePage from './pages/attendence';
+import CameraAttendancePage from './pages/attendance';
 import AddSubject from './pages/addSubject';
 import CameraPage from './pages/camera';
 function App() {
@@ -21,7 +21,7 @@ function App() {
       <Route path="/register" element={<Register/>}/>
       <Route path="/student" element={<StudentPage/>}/>
       <Route path="/teacher" element={<TeacherPage/>}/>
-      <Route path="/teacher/attendance" element={<AttendancePage/>}/>
+      <Route path="/teacher/attendance" element={<CameraAttendancePage/>}/>
       <Route path="/teacher/add_subject" element={<AddSubject/>}/>
       <Route path="/camera_page" element={<CameraPage/>}/>
     </Routes>

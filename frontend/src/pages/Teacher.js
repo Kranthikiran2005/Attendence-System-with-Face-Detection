@@ -80,7 +80,7 @@ const navigate = useNavigate();
               key={item}
               onClick={() => {
                 setActiveNav(item);
-                navigate("/teacher/attendence");
+                navigate("/teacher/attendance");
                 }}
               style={{
                 ...css.navItem,
