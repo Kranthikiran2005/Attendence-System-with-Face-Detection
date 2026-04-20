@@ -361,9 +361,6 @@ app.post("/attendance/match",verifyToken, async (req, res) => {
     });
     
     const matchData = await matchRes.json();
-    await db.query ("UPDATE attendance SET no_of_present=no_of_present+1 WHERE S_ID=? AND T_ID = ? AND Section = ? AND Sub = ?",
-      [matchData.student_id,T_ID,section,subject]
-    );
     // 🔹 Step 4: Return result
     res.json({
       student_id: matchData.student_id,
@@ -375,6 +372,14 @@ app.post("/attendance/match",verifyToken, async (req, res) => {
     res.status(500).json({ error: "Matching failed" });
   }
 });
+
+app.post("/teacher/increase-attendance",verifyToken,async(req,res)=>{
+  const T_ID=req.user.userId;
+  const {student_id, subject, section}=req.body;
+  await db.query ("UPDATE attendance SET no_of_present=no_of_present+1 WHERE S_ID=? AND T_ID = ? AND Section = ? AND Sub = ?",
+      [student_id,T_ID,section,subject]
+    );
+})
 app.post("/teacher/attendance",verifyToken,async(req,res)=>{
   const T_ID = req.user.userId;
   const { section, subject } = req.body;

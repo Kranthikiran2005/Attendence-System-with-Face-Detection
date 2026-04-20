@@ -3,6 +3,8 @@ import {useLocation} from "react-router-dom";
 export default function CameraAttendancePage() {
   const [started, setStarted] = useState(false);
   const [capturedImage, setCapturedImage] = useState(null);
+  const [students, setStudents] = useState([]); // attendance log
+  const [markedStudents, setMarkedStudents] = useState(new Set());
   const location = useLocation();
 
   const subject = location.state?.subject;
@@ -157,13 +159,51 @@ export default function CameraAttendancePage() {
       });
 
       const data = await res.json();
-      console.log(data);
-      alert("✅ Sent successfully");
+console.log(data);
+
+
+setStudents((prev) => {
+  const count = prev.filter(s => s.id === data.student_id).length;
+
+  if (count < 1) {
+    return [...prev, { id: data.student_id, score: data.score }];
+  }
+
+  return prev;
+});
+
+if (!markedStudents.has(data.student_id)) {
+  try {
+    await fetch("http://localhost:3000/teacher/increase-attendance", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        student_id: data.student_id,
+        subject: subject,
+        section: section,
+      }),
+    });
+
+    // mark as already counted
+    setMarkedStudents((prev) => new Set(prev).add(data.student_id));
+
+    console.log("✅ Attendance increased for:", data.student_id);
+
+  } catch (err) {
+    console.error("❌ Failed to increase attendance", err);
+  }
+}
+
+
     } catch (err) {
       console.error(err);
       alert("❌ Failed to send");
     }
   }}
+
   disabled={!capturedImage}
 >
   📤 Send
@@ -192,6 +232,26 @@ export default function CameraAttendancePage() {
           style={{ display: "none" }}
         />
       </main>
+      {students.length > 0 && (
+  <div style={{ marginTop: "20px", width: "300px" }}>
+    <h3>📋 Attendance Log</h3>
+
+    {students.map((s, index) => (
+      <div
+        key={index}
+        style={{
+          padding: "8px",
+          margin: "5px 0",
+          background: "#f1f1f1",
+          borderRadius: "6px",
+        }}
+      >
+        <strong>ID:</strong> {s.id} <br />
+        <small>Score: {s.score}</small>
+      </div>
+    ))}
+  </div>
+)}
     </div>
   );
 }
