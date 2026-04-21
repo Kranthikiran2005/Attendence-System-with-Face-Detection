@@ -22,10 +22,6 @@ This system eliminates manual attendance, reduces proxy attendance, and ensures 
 
 ## 📁 Project Structure
 
-
-
-
-
 project/
 │
 ├── frontend/ # React frontend
