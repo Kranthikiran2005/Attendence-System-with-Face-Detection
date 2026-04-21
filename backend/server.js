@@ -109,6 +109,16 @@ app.post("/login", async (req, res) => {
   }
 });
 
+app.post("/check_login",verifyToken,async(req,res)=>{
+  const {role}=req.body;
+  if(req.user.role!=role){
+    return res.json({bool: "False"})
+  }
+  else{
+    return res.json({bool: "True"})
+  }
+})
+
 app.post('/register', async (req, res) => {
   try {
     const { name, section, user_id, pwd, role } = req.body;
@@ -383,7 +393,7 @@ app.post("/teacher/increase-attendance",verifyToken,async(req,res)=>{
 app.post("/teacher/attendance",verifyToken,async(req,res)=>{
   const T_ID = req.user.userId;
   const { section, subject } = req.body;
-  console.log("Sahil san")
+  //console.log("Sahil san")
   try {
      await db.query(
       `UPDATE attendance 
@@ -399,7 +409,14 @@ app.post("/teacher/attendance",verifyToken,async(req,res)=>{
   }
 })
 
+app.post("/teacher/report",verifyToken,async(req,res)=>{
+  const T_ID=req.user.userId;
+  const { section, subject } = req.body;
 
+  const [rows]=await db.query("SELECT A.S_ID, B.S_Name, A.no_of_present, A.no_of_classes FROM attendance A JOIN student B ON A.S_ID=B.S_ID WHERE T_ID=? AND Sub=? AND Section=?",[T_ID,subject,section]);
+  console.log(rows);
+  return res.json(rows);
+})
 
 app.listen(3000, () => {
   console.log('Server running on http://localhost:3000');

@@ -24,15 +24,15 @@ export default function AddSubject() {
       const data = await res.json();
 
       if (res.ok) {
-        setMsg("✅ Subject added successfully!");
+        setMsg("Subject added successfully!   :)");
         setSubject("");
         setSection("");
       } else {
-        setMsg(data.error || "❌ Failed to add");
+        setMsg(data.error || "!! Failed to add");
       }
     } catch (err) {
       console.error(err);
-      setMsg("❌ Error occurred");
+      setMsg("!! Error occurred");
     }
   };
 
@@ -40,7 +40,6 @@ export default function AddSubject() {
     <div style={styles.container}>
       <h2>Add Subject</h2>
 
-      {/* SUBJECT */}
       <label>Subject</label>
       <select
         value={subject}
@@ -56,7 +55,7 @@ export default function AddSubject() {
         <option>Computer Science</option>
       </select>
 
-      {/* SECTION */}
+
       <label>Section</label>
       <input
         type="text"

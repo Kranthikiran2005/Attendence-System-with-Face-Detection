@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState,useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useLocation } from 'react-router-dom';
 
@@ -10,20 +10,29 @@ function Login() {
   const [loginId, setLoginId] = useState('');
   const [loginPassword, setLoginPassword] = useState('');
   const [loginMsg, setLoginMsg] = useState('');
+  const token=localStorage.getItem("token");
+  const location=useLocation();
+  //const role=location.state?.role;
+  const navigate=useNavigate();
+  const role=localStorage.getItem("role");
+ useEffect(() => {
 
+  if (token) {
+    if (role === "teacher") navigate("/teacher");
+    else if (role === "student") navigate("/student");
+  }
+}, []);
 
-  // Load users from localStorage (optional, kept as is)
   const [users] = useState(() => {
     const saved = localStorage.getItem('users');
     return saved ? JSON.parse(saved) : [];
   });
-  const navigate=useNavigate();
-  const location=useLocation();
-  const role=location.state?.role;
+
+  
   const handleLogin = async (e) => {
     e.preventDefault();
     console.log("HI1");
-    const role = location.state?.role;
+    console.log("Entered handle Login");
     console.log(role);
 
     if (role ==="student"){
@@ -123,7 +132,7 @@ function Login() {
     <div style={styles.container}>
       <div style={styles.card}>
         <form onSubmit={handleLogin} style={styles.form}>
-          <h2>Student Login</h2>
+          <h2>Login</h2>
 
           {loginMsg && (
             <div style={{ ...styles.msg, ...styles.errorMsg }}>

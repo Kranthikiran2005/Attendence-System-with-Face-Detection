@@ -44,7 +44,8 @@ def match():
     input_embedding = np.array(data["input_embedding"], dtype=np.float32)
 
     student_id, score = find_match(input_embedding, stored_embeddings)
-
+    
+    print(student_id)
     
 
     return jsonify({

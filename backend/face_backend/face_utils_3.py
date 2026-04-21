@@ -48,11 +48,9 @@ def SQltoEmbeddings() :
             print("None")
             continue
 
-        # 🔥 Step 1: decode bytes → string
         if isinstance(emb, bytes):
             emb_str = emb.decode('utf-8')
 
-        # 🔥 Step 2: convert string → list
         emb_list = json.loads(emb_str)
 
         stored_embeddings.append((student_id, emb_list))
@@ -66,19 +64,19 @@ def serialize_embedding(embedding):
     return json.dumps(embedding)
 
 
-# 🔹 Convert back from DB
+
 def deserialize_embedding(embedding_str):
     return json.loads(embedding_str)
 
 
-# 🔹 Cosine similarity
+
 def cosine_similarity(a, b):
     a = np.array(a)
     b = np.array(b)
     return np.dot(a, b) / (np.linalg.norm(a) * np.linalg.norm(b))
 
 
-# 🔹 Match function
+
 def find_match(input_embedding, stored_embeddings):
     """
     stored_embeddings: list of (student_id, embedding_list)

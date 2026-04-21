@@ -1,5 +1,8 @@
 import { useRef, useState, useEffect } from "react";
 import {useLocation} from "react-router-dom";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
+
 export default function CameraAttendancePage() {
   const [started, setStarted] = useState(false);
   const [capturedImage, setCapturedImage] = useState(null);
@@ -70,7 +73,56 @@ export default function CameraAttendancePage() {
     }
   }
   
-  // 🔹 Send Image
+    const generatePDF = async () => {
+      try {
+        const res = await fetch("http://localhost:3000/teacher/report", {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            subject,
+            section,
+          }),
+        });
+
+        const data = await res.json(); // attendance data
+
+        const doc = new jsPDF();
+
+        // Title
+        doc.setFontSize(18);
+        doc.text("Attendance Report", 14, 20);
+
+        doc.setFontSize(12);
+        doc.text(`Subject: ${subject}`, 14, 30);
+        doc.text(`Section: ${section}`, 14, 38);
+
+        console.log(data);
+
+        // Table
+        const tableData = data.map((s) => [
+          s.S_ID,
+          s.S_Name,
+          s.no_of_present,
+          s.no_of_classes-s.no_of_present,
+          s.no_of_classes,
+          
+        ]);
+
+        autoTable(doc, {
+          startY: 45,
+          head: [["Student ID", "Name", "Present", "Absent", "Total"]],
+          body: tableData,
+        });
+
+        doc.save("attendance_report.pdf");
+      } catch (err) {
+        console.error(err);
+        alert("❌ Failed to generate report");
+      }
+    };
  
    
   
@@ -108,6 +160,14 @@ export default function CameraAttendancePage() {
           disabled={!started}
         >
           ■ Stop Attendance
+        </button>
+
+
+        <button
+        style={{ ...css.btn, background: "#2c3e50" }}
+        onClick={generatePDF}
+      >
+        📄 Generate Report
         </button>
       </aside>
 

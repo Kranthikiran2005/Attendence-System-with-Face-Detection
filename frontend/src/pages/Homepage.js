@@ -108,6 +108,14 @@ const styles = `
   .status.active {
     color: #2c2c2c;
   }
+    .portal-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 36px;
+  letter-spacing: 0.1em;
+  color: #2c2c2c;
+  text-align: center;
+  text-shadow: 0 2px 10px rgba(0,0,0,0.05);
+}
 `;
 
 
@@ -115,32 +123,29 @@ const styles = `
 export default function RoleSelector() {
   const [selected, setSelected] = useState(null);
   const navigate = useNavigate();
+
+  const handleSelect = (role) => {
+    setSelected(role);
+    localStorage.setItem("role", role);
+    navigate("/login");
+  };
+
   return (
     <>
       <style>{styles}</style>
 
-      <div style={{
-      position: "fixed",
-      top: "20px",
-      right: "30px",
-    }}>
-      <button
-        onClick={() => navigate("/register")}
-      >
-        Register
-      </button>
-    </div>
+      <div style={{ position: "fixed", top: "20px", right: "30px" }}>
+        <button onClick={() => navigate("/register")}>Register</button>
+      </div>
 
       <div className="container">
+        <h1 className="portal-title">Attendance Portal</h1>
         <p className="heading">Select your role</p>
 
         <div className="options">
           <button
             className={`option-btn ${selected === "student" ? "active" : ""}`}
-            onClick={() => {
-            setSelected("student");
-            navigate("/student",{ state: { role: "student" } });
-          }}
+            onClick={() => handleSelect("student")}
           >
             <span>Student</span>
           </button>
@@ -149,18 +154,9 @@ export default function RoleSelector() {
 
           <button
             className={`option-btn ${selected === "teacher" ? "active" : ""}`}
-            onClick={() =>{ 
-              setSelected("teacher");
-              navigate("/teacher",{ state: { role: "teacher" } });
-            }}
+            onClick={() => handleSelect("teacher")}
           >
             <span>Teacher</span>
-          </button>
-          <button
-            className={`option-btn ${selected === "class" ? "active" : ""}`}
-            onClick={() => setSelected("class")}
-          >
-            <span>Class</span>
           </button>
         </div>
 

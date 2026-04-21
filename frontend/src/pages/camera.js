@@ -6,7 +6,8 @@ export default function CameraPage() {
 
   const [stream, setStream] = useState(null);
   const [image, setImage] = useState(null);
-  const token=localStorage.getItem("token");
+  const token = localStorage.getItem("token");
+
   // Start camera
   const startCamera = async () => {
     try {
@@ -17,6 +18,18 @@ export default function CameraPage() {
       setStream(mediaStream);
     } catch (err) {
       console.error("Camera error:", err);
+    }
+  };
+
+  //  Stop camera
+  const stopCamera = () => {
+    if (stream) {
+      stream.getTracks().forEach((track) => track.stop());
+      setStream(null);
+    }
+
+    if (videoRef.current) {
+      videoRef.current.srcObject = null;
     }
   };
 
@@ -64,6 +77,7 @@ export default function CameraPage() {
       <br /><br />
 
       <button onClick={startCamera}>Start Camera</button>
+      <button onClick={stopCamera}>Stop Camera</button>
       <button onClick={captureImage}>Capture</button>
       <button onClick={sendImage}>Send</button>
 

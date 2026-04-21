@@ -35,7 +35,7 @@ const navigate = useNavigate();
   else{
     navigate("/login",{state: {role: "teacher"}});
   }
-
+  
     try {
       const teacherId = localStorage.getItem("userId");
       
@@ -62,6 +62,8 @@ const navigate = useNavigate();
     } catch (err) {
       console.error(err);
     }
+  
+    
   };
 
   fetchSubjects();
@@ -112,7 +114,7 @@ const navigate = useNavigate();
         + Add Subject
       </button>
         <button onClick={()=>{localStorage.clear();
-          navigate("/login",{state :{role : "teacher"}});}
+          navigate("/",{state :{role : "teacher"}});}
         }>Logout</button>
       <span style={css.date}>Sunday, April 12, 2026</span>
       </div>  

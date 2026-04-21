@@ -3,7 +3,6 @@ import { useState,useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 
 
-
 const SUBJECTS = [
   { id: 1, name: "Mathematics", icon: "∑", color: "#e8f4fd", accent: "#2980b9", desc: "Algebra, Calculus & Geometry" },
   { id: 2, name: "Physics", icon: "⚛", color: "#fef9e7", accent: "#d4a017", desc: "Mechanics, Waves & Thermodynamics" },
@@ -30,13 +29,7 @@ const styles = `
   }
 `;
 
-/**
- * StudentPage
- *
- * Props:
- *   onSubject(subject)  — called when a subject card is clicked, receives the subject object
- *   onTakePhoto()       — called when "Take Photos" button is clicked
- */
+
 
 const css = {
   overlay: {
@@ -87,11 +80,12 @@ const [showPopup, setShowPopup] = useState(false);
 const [attendanceData, setAttendanceData] = useState(null);
 const [loadingPopup, setLoadingPopup] = useState(false);
 
+
   const getLoginStatus = () => {
   return location.state?.logged || false;
 };
 
-const role=location.state?.role;
+const role = localStorage.getItem("role");
 useEffect(() => {
   const token = localStorage.getItem("token");
 
@@ -114,7 +108,7 @@ useEffect(() => {
       });
 
       const data = await res.json();
-      setSubjects(data); // expected: [{ Subject, Section, ... }]
+      setSubjects(data);
     } catch (err) {
       console.error(err);
     }
@@ -224,6 +218,8 @@ useEffect(() => {
         setStudent_name(null);
         localStorage.clear();
 
+        navigate("/");
+
       }}>
         Logout
       </button>
@@ -323,7 +319,7 @@ useEffect(() => {
 
               <p>
                 <b>Percentage:</b>{" "}
-                {Math.round((attendanceData.attended / attendanceData.total) * 100)}%
+                {Math.round((attendanceData[0].no_of_present / attendanceData[0].no_of_classes) * 100)}%
               </p>
             </>
           ) : (
