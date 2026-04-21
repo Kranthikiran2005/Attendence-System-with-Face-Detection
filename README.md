@@ -46,8 +46,8 @@ project/
 ### 🔹 1. Clone the Repository
 
 ```bash
-git clone https://github.com/your-username/attendance-system.git
-cd attendance-system
+git clone https://github.com/Kranthikiran2005/Attendence-System-with-Face-Detection.git
+cd Attendence-System-with-Face-Detection
 ```
 
 ### Frontend Setup (React)
@@ -101,7 +101,7 @@ python app.py
 https://dev.mysql.com/downloads/mysql/
 👉 During installation:
 - Set username as: `root`
-- Set a password (remember it)
+- Set a password : kranthi_mysql#
 
 **2️⃣ Start MySQL Service**
 
@@ -127,48 +127,76 @@ mysql -u root -p attendance_db < database/schema.sql
 
 ## How It Works
 First register few Students
+
 Register a teacher
+
 All **Teacher and Student** should be registed from register button in Homepage using role option **(should use their own ID)**
+
 Please be careful while while switching from student page to teacher page or teacher to student,
+
 Do logout from teacher if you wish to switch to student and vice-versa
 
 **Student Interface:**
 login to student with id, password.
+
 click on take photos option and add a photo of student.
 
 **Teacher Interface:**
 Teacher can add subjects for a section.
+
 When teacher adds subject for a section, that combination of subject-section cannot be taken by other teacher
+
 Teacher selects a section-subject from their page.
 
+
 Start Attendance -> Camera starts
+
 Image is captured manually
+
 Image is sent to backend
+
 Face embedding is generated 
+
 Compared with stored embeddings
+
 Attendance is marked (can check in console for verification)
+
 Attencdance of students present in class is logged on the screen.
 
 ## 🏗️ Tech Stack
 Frontend
+
 React.js
+
 React Router
+
 HTML, CSS
+
 Backend
+
 Node.js (Express.js)
+
 Flask (for face recognition processing)
-Database
-MySQL
+
+Database MySQL
+
 OpenCV
+
 NumPy
+
 DEEPFACE/ Embedding model
+
 jsPDF (for PDF generation)
 
 ### 📄 Attendance Report
 Generates PDF with:
+
 Student ID
+
 Name
+
 Present count
+
 Absent count
 
 
