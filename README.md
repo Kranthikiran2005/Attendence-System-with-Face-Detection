@@ -20,6 +20,7 @@ This system eliminates manual attendance, reduces proxy attendance, and ensures 
 
 ---
 
+```
 ## 📁 Project Structure
 
 project/
@@ -37,7 +38,7 @@ project/
 │ │ └── test.py
 │
 └── README.md
-
+```
 ## ⚙️ Installation & Setup
 
 ### 🔹 1. Clone the Repository
