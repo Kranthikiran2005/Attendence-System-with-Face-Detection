@@ -46,31 +46,33 @@ project/
 ```bash
 git clone https://github.com/your-username/attendance-system.git
 cd attendance-system
-
+```
 
 ### Frontend Setup (React)
+```
 cd frontend
 npm install
 npm install jspdf jspdf-autotable
 npm start
-
+```
 ### 🖥️ Backend Setup (Node.js - Express)
+```
 cd backend
 
 Required Node Packages:
-```bash
+
 npm install express cors bcryptjs jsonwebtoken cookie-parser mysql2
 
 npm install
 
 To Run:
 node server.js/npm start
+```
 
 
 
 
-
-🧠 Face Recognition Backend Flask API Setup:
+### 🧠 Face Recognition Backend Flask API Setup:
 
 cd backend/face_backend
 
