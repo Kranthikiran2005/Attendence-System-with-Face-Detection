@@ -95,23 +95,44 @@ pip install deepface opencv-python numpy flask mysql-connector-python tf-keras
 python app.py
 ```
 
-### DataBase SETUP with MYSQL
-***Download and install MySQL Community Server:***
+## 🗄️ Database Setup
 
+Follow these steps to set up MySQL for the project.
+
+---
+
+### 1️⃣ Install MySQL
+
+Download and install MySQL Server:  
 https://dev.mysql.com/downloads/mysql/
-👉 During installation:
-- Set username as: `root`
-- Set a password : kranthi_mysql#
 
-**2️⃣ Start MySQL Service**
+---
 
-## 🗄️ Import Database
+### 2️⃣ Create Database
 
-Run the following command:
-(from backend foler)
-```bash
+Open MySQL and run:
+
+```sql
+CREATE DATABASE attendance_db;
+```
+
+### 3️⃣ Import Database Schema
+```
 mysql -u root -p attendance_db < database/schema.sql
 ```
+
+### 4️⃣ Configure Database Credentials
+
+Go to:
+
+backend/
+
+Create a .env file and add:
+
+DB_HOST=localhost
+DB_USER=root
+DB_PASSWORD=your_password
+DB_NAME=attendance_db
 
 
 ## How to run:
