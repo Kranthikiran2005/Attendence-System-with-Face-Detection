@@ -228,4 +228,6 @@ Present count
 
 Absent count
 
+Total
+
 
