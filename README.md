@@ -134,7 +134,8 @@ DB_USER=root
 DB_PASSWORD=your_password
 DB_NAME=attendance_db
 
-!!! In .env file and .env.example file(in backend):
+**!!! In .env file and .env.example file(in backend):**
+
 Put DB_password of your system...
 
 
@@ -150,42 +151,46 @@ Put DB_password of your system...
 ```
 
 ## How It Works
-First register few Students
+->First register few Students
 
-Register a teacher
+->Register a teacher
 
-All **Teacher and Student** should be registed from register button in Homepage using role option **(should use their own ID)**
+->All **Teacher and Student** should be registed from register button in Homepage using role option **(should use their own ID)**
 
-Please be careful while while switching from student page to teacher page or teacher to student,
+->Please be careful while while switching from student page to teacher page or teacher to student,
 
-Do logout from teacher if you wish to switch to student and vice-versa
+->**Do logout from teacher if you wish to switch to student and vice-versa**
 
 **Student Interface:**
-login to student with id, password.
 
-click on take photos option and add a photo of student.
+->login to student with id, password.
+
+->click on take photos option and add a photo of student.
 
 **Teacher Interface:**
-Teacher can add subjects for a section.
 
-When teacher adds subject for a section, that combination of subject-section cannot be taken by other teacher
-
-Teacher selects a section-subject from their page.
+->Teacher can add subjects for a section.
 
 
-Start Attendance -> Camera starts
+->When teacher adds subject for a section, that combination of subject-section cannot be taken by other teacher
 
-Image is captured manually
 
-Image is sent to backend
+->Teacher selects a section-subject from their page.
 
-Face embedding is generated 
 
-Compared with stored embeddings
+->Start Attendance -> Camera starts
 
-Attendance is marked (can check in console for verification)
+->Image is captured manually
 
-Attencdance of students present in class is logged on the screen.
+->Image is sent to backend
+
+->Face embedding is generated 
+
+->Compared with stored embeddings
+
+->Attendance is marked (can check in console for verification)
+
+->Attencdance of students present in class is logged on the screen.
 
 ## 🏗️ Tech Stack
 Frontend
