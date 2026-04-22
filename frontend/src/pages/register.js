@@ -33,6 +33,7 @@ const Register = () => {
     const [errMsg, setErrMsg] = useState('');
     const [success, setSuccess] = useState(false);
 
+
     useEffect(() => { userRef.current.focus(); }, []);
 
     useEffect(() => { setValidName2(NAME_REGEX.test(name)); }, [name]);
@@ -55,6 +56,7 @@ const Register = () => {
 
         if(role==="Teacher"){
             setSection("None");
+            
         }
 
         try {
@@ -68,13 +70,13 @@ const Register = () => {
                 throw new Error(response.status === 409 ? "Username Taken" : "Registration Failed");
             }
             if(role==="Student"){
-                navigate("/student", { 
-                state: { role: "Student" } 
-            });
+                localStorage.setItem("role","student");
+                navigate("/student");
+                
             }
             if(role==="Teacher"){
-                navigate("/teacher", { 
-                state: { role: "Teacher" } });
+                localStorage.setItem("role","teacher");
+                navigate("/teacher");
             }
             
             setSuccess(true);
@@ -136,7 +138,7 @@ const Register = () => {
                         
                         {/* USERNAME */}
                         <label>
-                            Username
+                            ID
                             <span className={validName ? "valid" : "hide"}>✔</span>
                             <span className={!validName && user_id ? "invalid" : "hide"}>✖</span>
                         </label>

@@ -50,6 +50,7 @@ const verifyToken= (req,res,next) => {
 
 app.post("/login", async (req, res) => {
   try {
+    console.log("Hi");
     const { loginId, loginPassword, role } = req.body;
 
     if (!loginId || !loginPassword || !role) {
@@ -60,12 +61,13 @@ app.post("/login", async (req, res) => {
     const password = loginPassword;
 
     let sql = "";
-
+    
     if (role === "student") {
       sql = "SELECT S_ID, password, S_Name FROM student WHERE S_ID=?";
     } else {
       sql = "SELECT T_ID, T_NAME, password FROM teacher WHERE T_ID=?";
     }
+    console.log(sql);
 
     const [rows] = await db.query(sql, [id]);
     if (rows.length === 0) {

@@ -78,7 +78,8 @@ CREATE TABLE `student` (
   `S_ID` int DEFAULT NULL,
   `S_Name` varchar(50) DEFAULT NULL,
   `Sec` varchar(30) DEFAULT NULL,
-  `password` varchar(225) DEFAULT NULL
+  `password` varchar(225) DEFAULT NULL,
+  PRIMARY KEY (`S_ID`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 

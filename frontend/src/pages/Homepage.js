@@ -126,7 +126,12 @@ export default function RoleSelector() {
 
   const handleSelect = (role) => {
     setSelected(role);
-    localStorage.setItem("role", role);
+    const la = localStorage.getItem("role");
+    if(la!=role){
+      localStorage.clear();
+      localStorage.setItem("role", role);
+    }
+    
     navigate("/login");
   };
 
