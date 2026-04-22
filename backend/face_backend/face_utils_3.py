@@ -5,6 +5,12 @@ import numpy as np
 import json
 import struct
 import mysql.connector
+from dotenv import load_dotenv
+import os
+
+print("PASSWORD:", os.getenv("DB_PASSWORD"))
+
+load_dotenv()
 
 MODEL_NAME = "Facenet"
 THRESHOLD = 0
@@ -27,10 +33,10 @@ def SQltoEmbeddings() :
     
 
     connection = mysql.connector.connect(
-        host="localhost",
-        user="root", 
-        password="kranthi_mysql#",
-        database="attendance_db"
+    host=os.getenv("DB_HOST"),
+    user=os.getenv("DB_USER"),
+    password=os.getenv("DB_PASSWORD"),
+    database=os.getenv("DB_NAME")
     )
 
     cursor = connection.cursor()
