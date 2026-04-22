@@ -136,7 +136,13 @@ DB_NAME=attendance_db
 
 **!!! In .env file and .env.example file(in backend):**
 
-Put DB_password of your system...
+Put DB_password of your SQL system...
+
+**AND ALSO**
+in backend/db.js
+
+put in line 8:
+ password: "Your SQL password"
 
 
 ## How to run:
