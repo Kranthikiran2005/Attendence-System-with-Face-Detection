@@ -134,6 +134,9 @@ DB_USER=root
 DB_PASSWORD=your_password
 DB_NAME=attendance_db
 
+!!! In .env file and .env.example file(in backend):
+Put DB_password of your system...
+
 
 ## How to run:
 ```
