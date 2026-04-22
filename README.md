@@ -51,6 +51,12 @@ cd Attendence-System-with-Face-Detection
 ```
 
 ### Frontend Setup (React)
+verify installation of node.js
+```
+node -v
+npm -v
+```
+Then:
 ```
 cd frontend
 npm install
@@ -61,11 +67,14 @@ npm start
 ```
 cd backend
 
+npm install
+
 Required Node Packages:
 
 npm install express cors bcryptjs jsonwebtoken cookie-parser mysql2
+npm install dotenv
 
-npm install
+
 
 To Run:
 node server.js/npm start
@@ -90,7 +99,7 @@ source venv/bin/activate
 
 # Install dependencies
 pip install deepface opencv-python numpy flask mysql-connector-python tf-keras
-
+pip install python-dotenv
 # Run Flask server
 python app.py
 ```
@@ -138,11 +147,22 @@ DB_NAME=attendance_db
 
 Put DB_password of your SQL system...
 
-**AND ALSO**
-in backend/db.js
+Go to:
 
-put in line 8:
- password: "Your SQL password"
+backend/face_backend
+
+Create a .env file and add:
+
+DB_HOST=localhost
+DB_USER=root
+DB_PASSWORD=your_password
+DB_NAME=attendance_db
+
+**!!! In .env file(in backend/face_backend):**
+
+Put DB_password of your SQL system...
+
+
 
 
 ## How to run:
@@ -154,6 +174,8 @@ put in line 8:
     npm start
 3) cd frontend
    npm start
+
+**!!! ALL THREE IN SEPEREATE TERMINALS**
 ```
 
 ## How It Works
